@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>运营部门龙虎榜（竞技版）</title>
+  <style>
+    :root {
+      --bg-page: #f4f5f7;
+      --bg-surface: #ffffff;
+      --bg-elevated: #f9fafb;
+      --bg-header: #f1f3f6;
+      --bg-stripe: #fafbfc;
+      --border-subtle: #e8ebf0;
+      --border-medium: #dde1e7;
+      --text-primary: #1a212b;
+      --text-secondary: #4a5567;
+      --text-muted: #8792a3;
+      --green: #1d6b54; --green-hover: #155440; --green-soft: #eaf4ef; --green-glow: rgba(29,107,84,0.10);
+      --blue: #3b6ff5; --blue-soft: #eef3ff; --blue-glow: rgba(59,111,245,0.10);
+      --amber: #c27a0a; --amber-soft: #fef9ee;
+      --violet: #7c3aed; --violet-soft: #f5f3ff;
+      --gold: #8b6914; --gold-bright: #d4a520; --gold-pale: #fef9ee; --gold-border: rgba(212,165,32,0.30); --gold-glow: rgba(212,165,32,0.14);
+      --silver: #545e70; --silver-bright: #95a0b2; --silver-pale: #f8f9fb; --silver-border: rgba(149,160,178,0.22); --silver-glow: rgba(149,160,178,0.08);
+      --bronze: #7d4a28; --bronze-bright: #b87840; --bronze-pale: #fdf9f6; --bronze-border: rgba(184,120,64,0.22); --bronze-glow: rgba(184,120,64,0.08);
+      --success: #16a34a; --success-soft: #eaf6ef;
+      --danger: #dc2626; --danger-soft: #fef2f2;
+      --shade-xs: 0 1px 1px rgba(16,24,40,0.03);
+      --shade-sm: 0 1px 2px rgba(16,24,40,0.04);
+      --shade-md: 0 2px 6px rgba(16,24,40,0.06);
+      --shade-lg: 0 6px 20px rgba(16,24,40,0.08);
+      --shade-xl: 0 12px 36px rgba(16,24,40,0.10);
+      --r-sm:6px; --r-md:10px; --r-lg:14px; --r-xl:18px;
+      --ease-fast:0.14s ease; --ease-normal:0.22s ease; --ease-bounce:0.45s cubic-bezier(0.22,0.61,0.36,1);
+    }
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{
+      background:var(--bg-page); color:var(--text-primary);
+      font-family:"Microsoft YaHei","PingFang SC",system-ui,-apple-system,sans-serif;
+      padding:22px 24px 36px; min-height:100vh; position:relative;
+      background-image:
+        /* 微点阵纹理 */
+        radial-gradient(circle at 15px 15px, rgba(29,107,84,0.025) 1px, transparent 1px),
+        radial-gradient(circle at 45px 45px, rgba(59,111,245,0.02) 1px, transparent 1px),
+        radial-gradient(circle at 75px 15px, rgba(212,165,32,0.02) 1px, transparent 1px);
+      background-size:90px 60px, 90px 60px, 90px 60px;
+      background-position:0 0, 30px 0, 60px 0;
+    }
+    /* 四角环境光 */
+    body::before{
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background:
+        radial-gradient(ellipse at 0% 0%, rgba(124,58,237,0.025) 0%, transparent 50%),
+        radial-gradient(ellipse at 100% 0%, rgba(59,111,245,0.025) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 100%, rgba(29,107,84,0.02) 0%, transparent 55%),
+        radial-gradient(ellipse at 0% 80%, rgba(212,165,32,0.015) 0%, transparent 40%);
+    }
+    /* 对角线装饰条纹 */
+    body::after{
+      content:''; position:fixed; top:-200px; right:-200px; width:500px; height:500px;
+      pointer-events:none; z-index:0; border-radius:50%;
+      background:conic-gradient(from 0deg, transparent 0deg, rgba(29,107,84,0.03) 30deg, transparent 60deg, rgba(59,111,245,0.02) 150deg, transparent 180deg, rgba(212,165,32,0.02) 210deg, transparent 240deg, rgba(124,58,237,0.02) 330deg, transparent 360deg);
+      opacity:0.5;
+    }
+    .container{max-width:1500px;margin:0 auto;position:relative;z-index:1}
+
+    /* Header */
+    .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+    .page-title{font-size:19px;font-weight:700;display:flex;align-items:center;gap:10px}
+    .page-title::before{content:'';display:inline-block;width:3px;height:18px;border-radius:2px;background:linear-gradient(180deg,var(--gold-bright),var(--green),var(--blue))}
+    .header-ctrl{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+    select,button{padding:6px 13px;border-radius:var(--r-sm);font-size:12.5px;border:1px solid var(--border-medium);cursor:pointer;outline:none;transition:all var(--ease-fast);font-family:inherit}
+    select{background:var(--bg-surface);color:var(--text-primary)}
+    select:hover{border-color:var(--green);background:var(--green-soft)}
+    button{font-weight:600}
+    .btn-accent{background:var(--green);color:#fff;border-color:var(--green)}
+    .btn-accent:hover{background:var(--green-hover);box-shadow:0 2px 10px var(--green-glow);transform:translateY(-1px)}
+    .btn-accent:active{transform:translateY(0)}
+    .btn-admin{background:var(--violet);color:#fff;border-color:var(--violet)}
+    .btn-admin:hover{background:#6d28d9;box-shadow:0 2px 12px rgba(124,58,237,0.18);transform:translateY(-1px)}
+    .btn-warn{background:var(--danger);color:#fff;border-color:var(--danger)}
+    .btn-warn:hover{opacity:.88}
+    .search-box{background:var(--bg-surface);border:1px solid var(--border-medium);color:var(--text-primary);padding:6px 11px 6px 30px;border-radius:20px;font-size:12.5px;width:160px;outline:none;transition:all var(--ease-fast);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='%238792a3' stroke-width='2.2'%3E%3Ccircle cx='10' cy='10' r='7'/%3E%3Cpath d='m21 21-5.2-5.2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center}
+    .search-box:focus{border-color:var(--blue);width:190px;box-shadow:0 0 0 3px rgba(59,111,245,0.08)}
+    .search-box::placeholder{color:var(--text-muted)}
+
+    /* Status Bar */
+    .status-bar{display:flex;align-items:center;gap:10px;padding:9px 16px;border-radius:var(--r-md);margin-bottom:18px;font-size:12.5px;font-weight:500;background:var(--success-soft);border:1px solid rgba(22,163,74,0.12);border-left:3px solid var(--success);color:#15803d}
+    .status-dot{width:7px;height:7px;border-radius:50%;background:#22c55e;box-shadow:0 0 8px rgba(34,197,94,0.5);animation:pulse-dot 2s infinite;flex-shrink:0}
+    @keyframes pulse-dot{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.8)}}
+    /* Top 3 — 旗帜式领奖台 */
+    .podium-section{position:relative;margin:4px 0 24px;padding:48px 18px 26px;border:1px solid #e8e2d4;border-radius:24px;background:linear-gradient(145deg,#fffdf7 0%,#f8fbff 52%,#fff8e8 100%);overflow:hidden;box-shadow:0 12px 34px rgba(53,61,76,.07)}
+    .podium-section::before{content:'';position:absolute;inset:0;background:linear-gradient(rgba(79,97,123,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(79,97,123,.035) 1px,transparent 1px),radial-gradient(circle at 50% 3%,rgba(255,210,73,.25),transparent 32%),radial-gradient(circle at 10% 90%,rgba(86,179,255,.15),transparent 28%),radial-gradient(circle at 90% 90%,rgba(255,165,74,.15),transparent 28%);background-size:32px 32px,32px 32px,auto,auto,auto;pointer-events:none}
+    .podium-section::after{content:'RANKING';position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:900;letter-spacing:8px;color:#b69a5a;animation:pulse-text 2.5s ease-in-out infinite}@keyframes pulse-text{0%,100%{opacity:.45}50%{opacity:.85}}
+    .podium-left-ornament,.podium-right-ornament{display:none}
+    .stage-watermark{position:absolute;left:38px;bottom:-20px;font-size:100px;line-height:1;font-weight:1000;letter-spacing:9px;color:transparent;-webkit-text-stroke:1px rgba(53,92,118,.11);user-select:none;pointer-events:none}
+    .stage-watermark::after{content:'BE BETTER · BE STRONGER';position:absolute;left:8px;bottom:105px;width:max-content;font-size:9px;font-weight:800;letter-spacing:3px;color:rgba(33,77,87,.20);-webkit-text-stroke:0}
+    .stage-side{position:absolute;top:42px;z-index:1;color:var(--text-secondary);pointer-events:none}
+    .stage-side.left{left:42px;text-align:left}.stage-side.right{right:42px;text-align:right}
+    .stage-side .eyebrow{display:block;margin-bottom:7px;font-size:9px;font-weight:900;letter-spacing:3px;color:#b98a28}
+    .stage-side strong{display:block;font-size:18px;letter-spacing:1px;color:#263342}
+    .stage-side small{display:block;margin-top:6px;font-size:10px;letter-spacing:1.5px;color:#94a0af}
+    .stage-side::after{content:'';display:block;width:46px;height:2px;margin-top:12px;background:linear-gradient(90deg,#e0b436,transparent)}
+    .stage-side.right::after{margin-left:auto;background:linear-gradient(90deg,transparent,#3b8f79)}
+    .stage-stars{position:absolute;inset:0;pointer-events:none;z-index:0}
+    .stage-stars i{position:absolute;width:5px;height:5px;border-radius:50%;background:#e8b93e;box-shadow:0 0 10px rgba(232,185,62,.55)}
+    .stage-stars i{position:absolute;width:5px;height:5px;border-radius:50%;background:#e8b93e;box-shadow:0 0 10px rgba(232,185,62,.55);animation:float-up 6s ease-in-out infinite}
+    .stage-stars i:nth-child(1){left:16%;top:31%}.stage-stars i:nth-child(2){right:15%;top:37%;background:#62acd8;animation-delay:.8s}.stage-stars i:nth-child(3){left:25%;bottom:18%;transform:scale(.65);background:#ed9a4f;animation-delay:1.6s}.stage-stars i:nth-child(4){right:24%;bottom:16%;background:#62acd8;transform:scale(.7);animation-delay:2.4s}.stage-stars i:nth-child(5){left:8%;top:52%;background:#c090e8;animation-delay:3.2s}.stage-stars i:nth-child(6){right:10%;top:58%;animation-delay:4s}.stage-stars i:nth-child(7){left:42%;bottom:28%;background:#ed9a4f;transform:scale(.55);animation-delay:4.8s}.stage-stars i:nth-child(8){right:38%;top:22%;background:#62d8b4;transform:scale(.8);animation-delay:5.4s}
+    .stage-stars i::before,.stage-stars i::after{content:'';position:absolute;left:50%;top:50%;background:inherit;transform:translate(-50%,-50%);opacity:.5}
+    .stage-stars i::before{width:17px;height:1px}.stage-stars i::after{width:1px;height:17px}
+    @keyframes float-up{0%,100%{transform:translateY(0) scale(1);opacity:.3}30%{transform:translateY(-24px) scale(1.4);opacity:1}60%{transform:translateY(-10px) scale(.9);opacity:.5}85%{transform:translateY(-28px) scale(1.2);opacity:.8}}
+    .podium-ambient{position:absolute;inset:0;pointer-events:none;z-index:0}
+    .podium-ambient span{position:absolute;border-radius:50%;animation:ambient-drift 8s ease-in-out infinite}
+    .podium-ambient span:nth-child(1){width:120px;height:120px;left:10%;top:20%;background:radial-gradient(circle,rgba(255,200,50,.18),transparent 70%)}
+    .podium-ambient span:nth-child(2){width:140px;height:140px;right:8%;top:15%;background:radial-gradient(circle,rgba(100,180,255,.14),transparent 70%);animation-delay:2s}
+    .podium-ambient span:nth-child(3){width:100px;height:100px;left:50%;bottom:10%;background:radial-gradient(circle,rgba(255,160,60,.12),transparent 70%);animation-delay:4s}
+    .podium-ambient span:nth-child(4){width:80px;height:80px;right:20%;bottom:25%;background:radial-gradient(circle,rgba(220,180,50,.1),transparent 70%);animation-delay:6s}
+    @keyframes ambient-drift{0%,100%{transform:translate(0,0) scale(1)}25%{transform:translate(20px,-15px) scale(1.2)}50%{transform:translate(-10px,10px) scale(.85)}75%{transform:translate(-15px,-8px) scale(1.15)}}
+    .rainbow-sweep{position:absolute;top:-2px;left:-100%;width:60%;height:3px;background:linear-gradient(90deg,transparent,rgba(255,210,80,.6),rgba(100,200,255,.4),transparent);animation:sweep 4s ease-in-out infinite;z-index:1;pointer-events:none}@keyframes sweep{0%{left:-60%}50%{left:100%}100%{left:100%}}
+    .rising-dots{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+    .rising-dots b{position:absolute;bottom:-10px;width:3px;height:3px;border-radius:50%;background:var(--podium-main);animation:rise 7s ease-in infinite}
+    .rising-dots b:nth-child(1){left:15%;animation-delay:0s;background:#e8b93e}.rising-dots b:nth-child(2){left:35%;animation-delay:1.5s;background:#62acd8}.rising-dots b:nth-child(3){left:55%;animation-delay:3s;background:#ed9a4f}.rising-dots b:nth-child(4){left:72%;animation-delay:4.5s;background:#c090e8}.rising-dots b:nth-child(5){left:88%;animation-delay:2s;background:#e8b93e}.rising-dots b:nth-child(6){left:22%;animation-delay:5s;background:#62d8b4}.rising-dots b:nth-child(7){left:48%;animation-delay:5.5s;background:#ed9a4f}.rising-dots b:nth-child(8){left:80%;animation-delay:6.5s;background:#62acd8}
+    @keyframes rise{0%{bottom:-10px;opacity:0}10%{opacity:1}90%{opacity:.6}100%{bottom:105%;opacity:0}}
+    .stage-floor{position:absolute;left:12%;right:12%;bottom:18px;height:48px;border-radius:50%;border-top:1px solid rgba(91,105,126,.12);background:radial-gradient(ellipse,rgba(66,83,104,.09),transparent 65%);transform:perspective(160px) rotateX(58deg);pointer-events:none}
+    .podium-wrap{display:flex;justify-content:center;align-items:flex-end;gap:22px;min-height:250px;padding:28px 8px 0;position:relative;z-index:1}
+    .podium-item{--podium-main:#9ba8bb;--podium-light:#f3f7fd;--podium-dark:#66758a;width:220px;min-height:224px;padding:100px 20px 34px;text-align:center;position:relative;isolation:isolate;cursor:pointer;opacity:0;transform:translateY(50px);transition:transform .25s ease,filter .25s ease;filter:drop-shadow(0 12px 14px rgba(46,58,75,.14))}
+    .podium-item::before{content:'';position:absolute;inset:38px 0 0;z-index:-2;background:linear-gradient(145deg,var(--podium-light),#fff 42%,var(--podium-main));border:1px solid color-mix(in srgb,var(--podium-main) 48%,white);clip-path:polygon(0 0,100% 0,100% 88%,50% 100%,0 88%);border-radius:18px 18px 0 0}
+    .podium-item::after{content:'';position:absolute;inset:48px 9px 17px;z-index:-1;clip-path:polygon(0 0,100% 0,100% 86%,50% 100%,0 86%);background:linear-gradient(115deg,transparent 20%,rgba(255,255,255,.68) 43%,transparent 64%);opacity:.7;pointer-events:none}
+    .podium-item.animate-in{animation:podiumEnter .5s cubic-bezier(0.22,0.61,0.36,1) forwards}
+    @keyframes podiumEnter{0%{opacity:0;transform:translateY(50px) scale(.92)}55%{opacity:1;transform:translateY(-3px) scale(1.02)}100%{opacity:1;transform:translateY(0) scale(1)}}
+    .podium-item:hover{transform:translateY(-8px)!important;filter:drop-shadow(0 18px 20px rgba(46,58,75,.2));z-index:5}
+    .podium-1{--podium-main:#ffc928;--podium-light:#fffbe0;--podium-dark:#b87800;order:2;z-index:2;width:244px;min-height:258px;padding-top:114px}
+    .podium-2{--podium-main:#82cfff;--podium-light:#edfaff;--podium-dark:#2884bd;order:1;z-index:1;min-height:240px;padding-top:108px}
+    .podium-3{--podium-main:#ffad62;--podium-light:#fff3e7;--podium-dark:#c7611c;order:3;z-index:1;min-height:210px;padding-top:90px}
+    .podium-avatar-cluster{position:absolute;top:0;left:50%;transform:translateX(-50%);display:flex;align-items:center;justify-content:center;z-index:2}
+    .podium-avatar{position:relative;width:82px;height:82px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:28px;font-weight:900;background:linear-gradient(145deg,var(--podium-main),var(--podium-dark));border:5px solid #fff;box-shadow:0 0 0 3px var(--podium-main),0 8px 18px rgba(41,52,68,.18);overflow:visible;flex-shrink:0}
+    .podium-avatar+.podium-avatar{margin-left:-22px}
+    .podium-avatar-cluster.multiple{top:18px;max-width:150px}
+    .podium-avatar-cluster.multiple .podium-avatar{width:48px;height:48px;font-size:16px;border-width:3px;box-shadow:0 0 0 2px var(--podium-main),0 5px 10px rgba(41,52,68,.13)}
+    .podium-avatar-cluster.multiple .podium-avatar:hover{z-index:5;transform:translateY(-4px)}
+    .podium-avatar img{width:100%;height:100%;display:block;border-radius:50%;object-fit:cover;background:#fff}
+    .podium-avatar .avatar-initial{display:grid;width:100%;height:100%;place-items:center}
+    .podium-1 .podium-avatar{width:94px;height:94px;font-size:32px}
+    .podium-2 .podium-avatar{width:90px;height:90px;font-size:30px}
+    .podium-3 .podium-avatar{width:74px;height:74px;font-size:24px}
+    .podium-1 .podium-avatar-cluster.multiple .podium-avatar{width:52px;height:52px;font-size:17px}
+    .podium-2 .podium-avatar-cluster.multiple .podium-avatar{width:48px;height:48px;font-size:16px}
+    .podium-3 .podium-avatar-cluster.multiple .podium-avatar{width:40px;height:40px;font-size:13px}
+    .podium-item:has(.podium-avatar-cluster.multiple) .podium-crown{top:-19px;font-size:27px}
+    .podium-item:has(.podium-avatar-cluster.multiple) .podium-name-row:not(:first-child){display:none}
+    .podium-item:has(.podium-avatar-cluster.multiple) .podium-name-row:first-child{font-style:italic;color:var(--text-muted)}
+    .podium-crown{position:absolute;top:-27px;left:50%;transform:translateX(-50%) rotate(-5deg);font-family:"Segoe UI Emoji","Apple Color Emoji",sans-serif;font-size:34px;line-height:1;filter:drop-shadow(0 4px 5px rgba(44,63,82,.22));animation:float-crown 2s ease-in-out infinite;z-index:3}
+    .podium-crown::before{content:'';position:absolute;left:50%;top:58%;width:42px;height:18px;border-radius:50%;background:var(--podium-main);transform:translate(-50%,-50%);filter:blur(10px);opacity:.42;z-index:-1}
+    .podium-1 .podium-crown{top:-34px;font-size:43px;filter:drop-shadow(0 4px 6px rgba(151,103,0,.28))}
+    .podium-2 .podium-crown{filter:grayscale(.5) hue-rotate(155deg) drop-shadow(0 4px 5px rgba(51,137,189,.28));animation-delay:.2s}
+    .podium-3 .podium-crown{filter:sepia(.28) hue-rotate(335deg) saturate(1.15) drop-shadow(0 4px 5px rgba(189,93,32,.28));animation-delay:.4s}
+    @keyframes float-crown{0%,100%{transform:translateX(-50%) translateY(0) rotate(-5deg)}50%{transform:translateX(-50%) translateY(-5px) rotate(-2deg)}}
+    .podium-rank-icon{font-size:25px;line-height:1;margin-bottom:7px;filter:drop-shadow(0 2px 2px rgba(0,0,0,.08))}
+    .podium-rank-label{font-size:11px;font-weight:900;letter-spacing:1.5px;color:var(--podium-dark);margin-bottom:5px}
+    .podium-name{font-size:15px;font-weight:800;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .podium-store{font-size:11px;color:var(--text-secondary);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    /* 多人并列：名字列表（同分共享一张卡） */
+    .podium-names-list{display:flex;flex-direction:column;gap:5px;margin:0 auto 8px;width:100%}
+    .podium-name-row{display:flex;flex-direction:column;align-items:center;gap:2px;width:100%;padding:4px 8px;border-radius:var(--r-md);background:rgba(255,255,255,.5);cursor:pointer;transition:background var(--ease-fast)}
+    .podium-name-row:hover{background:rgba(255,255,255,.85)}
+    .podium-avatar-sm{position:relative;width:24px;height:24px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;color:#fff;font-size:10px;font-weight:800;background:linear-gradient(135deg,var(--podium-main),var(--podium-dark))}
+    .podium-avatar-sm img{width:100%;height:100%;display:block;border-radius:50%;object-fit:cover}
+    .podium-avatar-sm .avatar-initial-sm{display:grid;width:100%;height:100%;place-items:center}
+    .podium-name-text{max-width:100%;font-size:11.5px;font-weight:700;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+    .podium-store-text{max-width:100%;font-size:9.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}
+    .podium-score-badge{display:inline-flex;align-items:baseline;gap:3px;font-size:23px;font-weight:900;color:var(--podium-dark)}
+    .podium-score-badge::after{content:attr(data-unit);font-size:10px;font-weight:700;color:var(--text-muted)}
+    .podium-glow-bar{position:absolute;left:25%;right:25%;bottom:23px;height:3px;border-radius:50%;background:var(--podium-main);box-shadow:0 0 14px var(--podium-main);opacity:.55}
+
+    /* Ornamental divider between podium and tabs */
+    .ornament-divider{display:flex;align-items:center;justify-content:center;gap:0;margin-bottom:0;height:20px;position:relative;z-index:1}
+    .ornament-divider::before,.ornament-divider::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,transparent,var(--border-medium));max-width:200px}
+    .ornament-divider::after{background:linear-gradient(90deg,var(--border-medium),transparent)}
+    .ornament-divider-icon{width:30px;height:30px;border:1px solid rgba(29,107,84,0.12);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 14px;position:relative;background:var(--bg-surface)}
+    .ornament-divider-icon::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green)}
+    .ornament-divider-icon::after{content:'';position:absolute;inset:-3px;border-radius:50%;border:1px solid rgba(29,107,84,0.06);pointer-events:none}
+
+    /* Tab Nav */
+    .tab-nav{display:flex;margin-bottom:0;gap:0;overflow-x:auto;background:var(--bg-surface);border-radius:var(--r-md) var(--r-md) 0 0;border:1px solid var(--border-subtle);border-bottom:none;position:relative}
+    .tab-nav::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:var(--r-md) var(--r-md) 0 0;background:linear-gradient(90deg,var(--gold-bright),var(--green),var(--blue),var(--violet));opacity:.7}
+    .tab-item{padding:13px 20px 11px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--text-muted);transition:all var(--ease-fast);white-space:nowrap}
+    .tab-item:first-child{border-radius:var(--r-md) 0 0 0}
+    .tab-item:last-child{border-radius:0 var(--r-md) 0 0}
+    .tab-item:hover{color:var(--text-primary);background:var(--bg-elevated)}
+    .tab-item.active{color:var(--green);font-weight:700;background:var(--green-soft);box-shadow:inset 0 -2px 0 var(--green)}
+    .tab-item .tab-badge{display:inline-block;margin-left:4px;padding:1px 6px;border-radius:8px;font-size:10px;font-weight:700}
+    .tab-item:nth-child(1) .tab-badge{background:var(--amber-soft);color:var(--amber)}
+    .tab-item:nth-child(2) .tab-badge{background:var(--blue-soft);color:var(--blue)}
+    .tab-item:nth-child(3) .tab-badge{background:var(--green-soft);color:var(--green)}
+    .tab-item:nth-child(4) .tab-badge{background:var(--violet-soft);color:var(--violet)}
+    .tab-item:nth-child(5) .tab-badge{background:var(--amber-soft);color:var(--amber)}
+    .tab-panel{display:none;animation:fadeSlideIn .2s ease}
+    .tab-panel.active{display:block}
+    @keyframes fadeSlideIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+
+    /* Table */
+    .table-card{background:var(--bg-surface);border-radius:0 0 var(--r-lg) var(--r-lg);box-shadow:var(--shade-md);border:1px solid var(--border-subtle);border-top:none;overflow:hidden;position:relative}
+    .table-card::before{content:'';position:absolute;top:0;left:20px;right:20px;height:1px;background:linear-gradient(90deg,transparent,rgba(212,165,32,0.3),rgba(29,107,84,0.3),rgba(59,111,245,0.3),transparent);z-index:2}
+    .table-toolbar{display:flex;justify-content:space-between;align-items:center;padding:8px 18px;border-bottom:1px solid var(--border-subtle);background:linear-gradient(180deg,var(--bg-elevated),var(--bg-surface))}
+    .table-toolbar .info{font-size:11.5px;color:var(--text-muted)}
+    .table-toolbar .info strong{color:var(--text-secondary)}
+    .btn-export{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-color:rgba(29,107,84,.22);background:#fff;color:var(--green);font-size:11.5px}
+    .btn-export:hover{background:var(--green-soft);border-color:var(--green);transform:translateY(-1px)}
+    table{width:100%;border-collapse:collapse;table-layout:fixed}
+    thead th{padding:9px 10px;text-align:center;font-size:10.5px;font-weight:600;color:var(--text-muted);background:var(--bg-header);border-bottom:2px solid var(--border-medium);user-select:none;white-space:nowrap;cursor:pointer;letter-spacing:.3px;transition:all var(--ease-fast)}
+    thead th:hover{color:var(--text-secondary)}
+    thead th .sort-icon{margin-left:3px;font-size:9px;opacity:0;transition:opacity var(--ease-fast)}
+    thead th:hover .sort-icon{opacity:.35}
+    thead th.sorted{color:var(--green)}
+    thead th.sorted .sort-icon{opacity:1}
+    tbody td{padding:9px 10px;text-align:center;font-size:12.5px;border-bottom:1px solid var(--border-subtle)}
+    .table-person{display:grid;grid-template-columns:30px minmax(0,1fr);align-items:center;gap:8px;width:110px;max-width:100%;min-width:0;min-height:30px;margin-left:auto;margin-right:auto;vertical-align:middle;transform:translateX(20px)}
+    .table-avatar{width:30px;height:30px;border-radius:50%;flex:0 0 30px;display:grid;place-items:center;overflow:hidden;color:#fff;font-size:12px;font-weight:800;border:2px solid #fff;box-shadow:0 0 0 1px var(--border-medium)}
+    .table-avatar img{width:100%;height:100%;display:block;object-fit:cover}
+    .table-person .table-avatar{position:static;transform:none}
+    .table-person-text{width:100%;min-width:0;padding:0;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .tab-total-table .table-person,.tab-profit-table .table-person{width:170px}
+    .tab-total-table th:nth-child(2),.tab-total-table td:nth-child(2),.tab-profit-table th:nth-child(2),.tab-profit-table td:nth-child(2),.tab-newsku-table th:nth-child(1),.tab-newsku-table td:nth-child(1),.tab-success-table th:nth-child(2),.tab-success-table td:nth-child(2),.tab-point-table th:nth-child(2),.tab-point-table td:nth-child(2){text-align:center!important}
+    .tab-total-table th:nth-child(2),.tab-total-table td:nth-child(2),.tab-profit-table th:nth-child(2),.tab-profit-table td:nth-child(2){text-align:center;padding-left:10px;padding-right:10px}
+    tbody tr:nth-child(even){background:var(--bg-stripe)}
+    tbody tr{transition:all var(--ease-fast);cursor:pointer}
+    tbody td:first-child{position:relative}
+    tbody td:first-child::before{content:'';position:absolute;left:0;top:3px;bottom:3px;width:0;background:linear-gradient(180deg,var(--gold-bright),var(--green),var(--blue));transition:width var(--ease-fast);border-radius:0 2px 2px 0}
+    tbody tr:hover{background:var(--green-soft)}
+    tbody tr:hover td:first-child::before{width:3px}
+    tbody tr.row-bottom{background:var(--danger-soft)}
+    tbody tr.row-bottom:nth-child(even){background:#fef3f3}
+    tbody tr.row-bottom td:first-child::before{background:var(--danger);width:3px}
+    tbody tr.row-self{background:var(--blue-soft)!important;box-shadow:inset 0 0 0 2px var(--blue);border-radius:2px}
+    tbody tr.row-new{animation:highlightRow 1.5s ease}
+    @keyframes highlightRow{0%{background:#d4ede2}100%{background:transparent}}
+    /* 固定列宽 — 用 CSS 替代 colgroup 避免百分比漂移 */
+    .tab-total-table col:nth-child(1){width:10%}.tab-total-table col:nth-child(2){width:27%}.tab-total-table col:nth-child(3){width:9%}.tab-total-table col:nth-child(4){width:18%}.tab-total-table col:nth-child(5){width:17%}.tab-total-table col:nth-child(6){width:11%}.tab-total-table col:nth-child(7){width:8%}
+    .tab-profit-table col:nth-child(1){width:10%}.tab-profit-table col:nth-child(2){width:34%}.tab-profit-table col:nth-child(3){width:12%}.tab-profit-table col:nth-child(4){width:22%}.tab-profit-table col:nth-child(5){width:22%}
+    .tab-newsku-table col:nth-child(1){width:22%}.tab-newsku-table col:nth-child(2){width:12%}.tab-newsku-table col:nth-child(3){width:13%}.tab-newsku-table col:nth-child(4){width:13%}.tab-newsku-table col:nth-child(5){width:14%}.tab-newsku-table col:nth-child(6){width:26%}
+    .tab-success-table col:nth-child(1),.tab-point-table col:nth-child(1){width:12%}.tab-success-table col:nth-child(2),.tab-point-table col:nth-child(2){width:38%}.tab-success-table col:nth-child(3),.tab-point-table col:nth-child(3){width:25%}.tab-success-table col:nth-child(4),.tab-point-table col:nth-child(4){width:25%}
+    .cell-rank{text-align:center;white-space:nowrap}
+    .cell-rank.top1{color:var(--gold);font-size:15px}
+    .cell-rank.top2{color:var(--silver);font-size:14px}
+    .cell-rank.top3{color:var(--bronze);font-size:14px}
+    .up{color:var(--success);font-weight:600}
+    .down{color:var(--danger);font-weight:600}
+    .badge-ok{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;background:var(--success-soft);color:#15803d}
+    .badge-fail{display:inline-block;padding:2px 9px;border-radius:10px;font-size:11px;font-weight:600;background:var(--danger-soft);color:var(--danger)}
+    td.cell-status{text-align:center}
+    .cell-score{font-weight:700;font-size:14px;color:var(--blue)}
+
+    /* Pagination */
+    .pagination{display:flex;justify-content:center;align-items:center;gap:2px;padding:10px 16px 6px}
+    .pagination button{padding:5px 10px;border-radius:var(--r-sm);font-size:11.5px;font-weight:500;background:var(--bg-surface);color:var(--text-muted);border:1px solid var(--border-medium);cursor:pointer;transition:all var(--ease-fast);min-width:30px;text-align:center}
+    .pagination button:hover:not(:disabled):not(.active){border-color:var(--green);color:var(--green);background:var(--green-soft)}
+    .pagination button:disabled{opacity:.28;cursor:default}
+    .pagination button.active{background:var(--green);color:#fff;border-color:var(--green);font-weight:700}
+
+    /* Modal */
+    .mask{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(16,24,40,.4);backdrop-filter:blur(3px);display:none;align-items:safe center;justify-content:center;z-index:999;overflow-y:auto;padding:40px 0}
+    .mask.show{display:flex;animation:fadeIn .15s ease}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+    .modal{width:520px;max-height:80vh;overflow-y:auto;background:var(--bg-surface);border-radius:var(--r-lg);padding:22px 26px;border:1px solid var(--border-medium);box-shadow:var(--shade-xl);animation:modalIn .22s ease}
+    @keyframes modalIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+    .modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border-subtle)}
+    .modal-head h3{font-size:15px;font-weight:700;display:flex;align-items:center;gap:8px}
+    .modal-head h3::before{content:'';display:inline-block;width:3px;height:14px;border-radius:2px;background:var(--green)}
+    .close-modal{cursor:pointer;font-size:18px;color:var(--text-muted);width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:all var(--ease-fast)}
+    .close-modal:hover{color:var(--danger);background:var(--danger-soft)}
+    .detail-card{padding:10px 14px;background:var(--bg-elevated);border-radius:var(--r-md);border:1px solid var(--border-subtle)}
+    .detail-card .label{font-size:10px;color:var(--text-muted);letter-spacing:.4px;margin-bottom:1px}
+    .detail-card .value{font-weight:700;font-size:13px}
+    .detail-card .table-person-text{white-space:normal;overflow:visible;text-overflow:unset}
+
+    @media(max-width:900px){
+      body{padding:12px}
+      .page-header{flex-direction:column;align-items:flex-start}
+      .podium-section{padding:44px 8px 18px;border-radius:16px}
+      .stage-side{display:none}.stage-watermark{left:12px;bottom:-4px;font-size:48px;letter-spacing:5px}.stage-watermark::after{display:none}.stage-stars i:nth-child(1),.stage-stars i:nth-child(2){display:none}
+      .podium-wrap{gap:6px;min-height:205px;padding-inline:0}
+      .podium-item{width:31%;min-height:184px;padding:82px 7px 27px}.podium-1{width:34%;min-height:214px;padding-top:94px}
+      .podium-avatar{width:64px;height:64px;font-size:21px}.podium-1 .podium-avatar{width:74px;height:74px;font-size:24px}.podium-avatar-cluster.multiple .podium-avatar,.podium-1 .podium-avatar-cluster.multiple .podium-avatar{width:40px;height:40px;font-size:14px}
+      .podium-crown{top:-24px;font-size:29px}.podium-rank-icon{font-size:19px}.podium-rank-label{font-size:9px}.podium-name{font-size:11px}.podium-store{font-size:9px}.podium-name-row{padding-inline:5px}.podium-store-text{font-size:8.5px}.podium-score-badge{font-size:17px}
+      .tab-nav{overflow-x:auto}.tab-item{padding:9px 13px;font-size:11px}
+      .modal{width:95vw;padding:16px}
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="page-header">
+    <h1 class="page-title">运营部门龙虎榜</h1>
+    <div class="header-ctrl">
+      <select id="cycleSelect"></select>
+      <input type="text" class="search-box" id="searchBox" placeholder="搜索姓名/店铺...">
+      <button class="btn btn-accent" id="btnRefresh">🔄 刷新数据</button>
+      <button class="btn btn-accent" id="findSelf">🎯 定位自己</button>
+      <button class="btn btn-admin" id="openAdmin">⚙️ 管理员后台</button>
+    </div>
+  </div>
+  <div class="status-bar">
+    <span class="status-dot"></span>
+    <span id="statusText">✅ 数据更新于：2026-07-18 | 当前PK周期：5-6月双月榜单</span>
+  </div>
+  <div class="podium-section">
+    <div class="stage-watermark">BESKO</div>
+    <div class="stage-side left"><span class="eyebrow">OPERATION TEAM</span><strong id="stageBoardTitle">优秀员工PK总榜</strong><small></small></div>
+    <div class="stage-side right"><span class="eyebrow">2026 SEASON</span><strong id="stageCycle">5—6月 · 双月赛</strong><small>突破 · 成长 · 共赢</small></div>
+    <div class="stage-stars"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="podium-ambient"><span></span><span></span><span></span><span></span></div>
+    <div class="rising-dots"><b></b><b></b><b></b><b></b><b></b><b></b><b></b><b></b></div>
+    <div class="rainbow-sweep"></div>
+    <div class="stage-floor"></div>
+    <div class="podium-left-ornament"><div class="podium-ornament-diamond"></div><div class="podium-ornament-line"></div><div class="podium-ornament-diamond"></div><div class="podium-ornament-line"></div><div class="podium-ornament-diamond"></div><div class="podium-ornament-line"></div><div class="podium-ornament-diamond"></div><div class="podium-ornament-line"></div><div class="podium-ornament-diamond"></div></div>
+    <div class="podium-right-ornament"><div class="podium-ornament-diamond"></div><div class="podium-ornament-line"></div><div class="podium-ornament-diamond"></div><div class="podium-ornament-line"></div><div class="podium-ornament-diamond"></div><div class="podium-ornament-line"></div><div class="podium-ornament-diamond"></div><div class="podium-ornament-line"></div><div class="podium-ornament-diamond"></div></div>
+    <div class="podium-wrap" id="podiumWrap"></div>
+
+  </div>
+  <div class="ornament-divider"><div class="ornament-divider-icon"></div></div>
+  <div class="tab-nav" id="tabNav"></div>
+  <div id="tabPanels"></div>
+  <div class="mask" id="avatarMask" onclick="this.classList.remove('show')" style="background:rgba(16,24,40,.7);align-items:center;justify-content:center"><img id="avatarLarge" style="max-width:85vw;max-height:85vh;border-radius:50%;border:6px solid #fff;box-shadow:0 20px 60px rgba(0,0,0,.35)" src="" alt=""></div>
+  <div class="mask" id="detailMask">
+    <div class="modal">
+      <div class="modal-head"><span class="modal-back" id="modalBack" style="display:none;cursor:pointer;font-size:16px;margin-right:6px;color:var(--text-muted)" title="返回">← 返回</span><h3 id="modalTitle">运营人员周期明细</h3><span class="close-modal" id="closeModal">✕</span></div>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const CURRENT_USER='kayo';
+const STORE={
+  pointCardFilter:'all',
+  cycles:{
+    '5-6月2026':{label:'2026 5-6月（当前周期）',updated:'2026-07-18',
+      people:{
+        kayo:{name:'Kayo',level:'P4',store:'红卡-US',storeColor:'#EF4444'},
+        hayley:{name:'Hayley',level:'P3',store:'粉卡-US',storeColor:'#EC4899'},
+        how:{name:'How',level:'P4',store:'橙圆卡-US',storeColor:'#F97316'},
+        cici:{name:'Cici',level:'P3',store:'黄卡-US',storeColor:'#EAB308'},
+        thea:{name:'Thea',level:'P3',store:'黄圆卡-US',storeColor:'#F59E0B'},
+        ivy:{name:'Ivy',level:'P2',store:'紫卡-US',storeColor:'#A855F7'},
+        ray:{name:'Ray',level:'P4',store:'白圆卡-US',storeColor:'#CBD5E1'},
+        zoey:{name:'Zoey',level:'P3',store:'绿卡-US',storeColor:'#22C55E'},
+        panny:{name:'Panny',level:'P2',store:'绿卡-US',storeColor:'#22C55E'},
+        tris:{name:'Tris',level:'P2',store:'绿卡-US',storeColor:'#22C55E'},
+      },
+      total:[
+        {pid:'kayo',score:328,profitGrowth:12800,newProducts:8,newSkuOk:true,prevRank:1},
+        {pid:'how',score:262,profitGrowth:8200,newProducts:8,newSkuOk:true,prevRank:2},
+        {pid:'hayley',score:246,profitGrowth:9600,newProducts:6,newSkuOk:true,prevRank:3},
+        {pid:'cici',score:220,profitGrowth:4500,newProducts:7,newSkuOk:true,prevRank:4},
+        {pid:'zoey',score:198,profitGrowth:3200,newProducts:5,newSkuOk:true,prevRank:7},
+        {pid:'thea',score:162,profitGrowth:-850,newProducts:7,newSkuOk:false,prevRank:5},
+        {pid:'panny',score:145,profitGrowth:1100,newProducts:4,newSkuOk:true,prevRank:8},
+        {pid:'tris',score:120,profitGrowth:500,newProducts:3,newSkuOk:true,prevRank:9},
+        {pid:'ray',score:105,profitGrowth:-600,newProducts:2,newSkuOk:false,prevRank:10},
+        {pid:'ivy',score:91,profitGrowth:-920,newProducts:4,newSkuOk:false,prevRank:6},
+      ],
+      profit:[
+        {pid:'kayo',mom:12800,yoy:15200},{pid:'how',mom:8200,yoy:7100},{pid:'hayley',mom:9600,yoy:8300},
+        {pid:'cici',mom:4500,yoy:3200},{pid:'zoey',mom:3200,yoy:2800},{pid:'thea',mom:-850,yoy:-1200},
+        {pid:'panny',mom:1100,yoy:900},{pid:'tris',mom:500,yoy:300},{pid:'ray',mom:-600,yoy:-800},{pid:'ivy',mom:-920,yoy:-1500},
+      ],
+      newsku:[
+        {pid:'kayo',may:2,june:2,total:4,gap:'无缺口，完成目标'},{pid:'how',may:2,june:2,total:4,gap:'无缺口，完成目标'},
+        {pid:'hayley',may:2,june:2,total:4,gap:'无缺口，完成目标'},{pid:'cici',may:2,june:2,total:4,gap:'无缺口，完成目标'},
+        {pid:'zoey',may:2,june:1,total:3,gap:'6月差1款'},{pid:'thea',may:2,june:1,total:3,gap:'6月缺1款未补齐 → 垫底'},
+        {pid:'panny',may:1,june:2,total:3,gap:'5月差1款'},{pid:'tris',may:1,june:1,total:2,gap:'两月均不足2款'},
+        {pid:'ray',may:1,june:1,total:2,gap:'两月均不足2款'},{pid:'ivy',may:1,june:1,total:2,gap:'两月均不足2款 → 垫底'},
+      ],
+      success:[
+        {pid:'kayo',qualified:8,score:200},{pid:'how',qualified:8,score:200},{pid:'cici',qualified:7,score:175},
+        {pid:'thea',qualified:7,score:175},{pid:'hayley',qualified:6,score:150},{pid:'zoey',qualified:5,score:125},
+        {pid:'panny',qualified:4,score:100},{pid:'tris',qualified:3,score:75},{pid:'ray',qualified:2,score:50},{pid:'ivy',qualified:4,score:100},
+      ],
+      point:[
+        {pid:'kayo',points:125,change:8},{pid:'how',points:112,change:-3},{pid:'hayley',points:98,change:5},
+        {pid:'cici',points:85,change:2},{pid:'zoey',points:72,change:4},{pid:'thea',points:70,change:-1},
+        {pid:'panny',points:58,change:3},{pid:'tris',points:40,change:-2},{pid:'ray',points:38,change:1},{pid:'ivy',points:45,change:-6},
+      ]},
+    '3-4月2026':{label:'2026 3-4月',updated:'2026-05-20',people:{},total:[],profit:[],newsku:[],success:[],point:[]},
+    '1-2月2026':{label:'2026 1-2月',updated:'2026-03-20',people:{},total:[],profit:[],newsku:[],success:[],point:[]}
+  },currentCycle:'5-6月2026',currentTab:'total',sortState:{},searchQuery:'',pageState:{},pageSize:10
+};
+function cycle(){return STORE.cycles[STORE.currentCycle]}
+function person(pid){return cycle().people[pid]}
+function fmtUSD(n){return (n>=0?'+':'')+n.toLocaleString()+' USD'}
+function fmtChange(n){return (n>=0?'+':'')+n}
+function getRankDisplay(rank){if(rank===1)return'🥇';if(rank===2)return'🥈';if(rank===3)return'🥉';return rank}
+function personAvatar(pid){return person(pid).avatarUrl||''}
+function avatarMarkup(p,row){const src=personAvatar(row.pid);return src?`<img src="${src}" alt="${p.name}的头像">`:`<span class="avatar-initial">${p.name.slice(0,1)}</span>`}
+function nameColor(name){let h=0;for(let i=0;i<name.length;i++)h=name.charCodeAt(i)+((h<<5)-h);const hues=[195,340,45,160,280,25,210,120,310,70,260,15,180,330,95,230];return`hsl(${hues[Math.abs(h)%hues.length]},55%,48%)`}
+function tablePerson(pid,showStore=false){const p=person(pid),src=personAvatar(pid),avatar=src?`<img src="${src}" alt="${p.name}的头像">`:p.name.slice(0,1),bg=src?'':`background:${nameColor(p.name)}`;return`<span class="table-person"><span class="table-avatar" style="${bg}">${avatar}</span><span class="table-person-text">${showStore?`<strong>${p.store}</strong> | `:''}${p.name}</span></span>`}
+const DEFAULT_SORT={profit:{field:'mom',dir:'desc'},newsku:{field:'total',dir:'desc'},success:{field:'score',dir:'desc'},point:{field:'points',dir:'desc'}};
+function sortData(data,field,dir){return[...data].sort((a,b)=>{let va=a[field],vb=b[field];if(typeof va==='string')va=va.toLowerCase(),vb=vb.toLowerCase();return va<vb?dir==='asc'?-1:1:va>vb?dir==='asc'?1:-1:0})}
+function filterBySearch(data,query){if(!query.trim())return data;const q=query.trim().toLowerCase();return data.filter(row=>{const p=person(row.pid);return p.name.toLowerCase().includes(q)||p.store.toLowerCase().includes(q)})}
+function paginate(data,tabId){const page=STORE.pageState[tabId]||1,total=data.length,ps=STORE.pageSize||total,totalPages=Math.ceil(total/ps),start=(page-1)*ps;return{slice:data.slice(start,start+(ps||total)),page,total,totalPages,start}}
+
+async function loadBackendData(){
+  try{
+    const res=await fetch('/api/leaderboard',{headers:{Accept:'application/json'}});if(!res.ok)throw new Error('API '+res.status);
+    const payload=await res.json();if(!payload.ok||!payload.cycle)throw new Error(payload.error||'榜单数据无效');
+    const c=payload.cycle,updated=String(c.updatedAt||'').slice(0,10)||'未知';
+    STORE.cycles={[c.key]:{label:c.label||c.key,updated,people:c.people||{},total:c.total||[],profit:c.profit||[],newsku:c.newsku||[],success:c.success||[],point:c.point||[]}};
+    STORE.currentCycle=c.key;STORE.sortState={};STORE.pageState={};STORE.searchQuery='';
+    document.documentElement.dataset.source='api';return true
+  }catch(error){console.warn('后端 API 不可用，使用页面演示数据：',error);document.documentElement.dataset.source='demo';return false}
+}
+
+function toggleSort(tabId,field){const cur=STORE.sortState[tabId];if(cur&&cur.field===field)STORE.sortState[tabId]={field,dir:cur.dir==='asc'?'desc':'asc'};else STORE.sortState[tabId]={field,dir:'asc'};STORE.pageState[tabId]=1;renderTab(tabId)}
+function getSortDir(tabId,field){const s=STORE.sortState[tabId];return(s&&s.field===field)?s.dir:null}
+
+function renderPodium(){
+  const wrap=document.getElementById('podiumWrap');
+  const configs={total:{field:'score',unit:'总分',title:'优秀员工PK总榜'},profit:{field:'mom',unit:'USD',title:'利润增长榜'},newsku:{field:'total',unit:'款',title:'月度上新完成榜'},success:{field:'score',unit:'分',title:'推新成功榜'},point:{field:'points',unit:'积分',title:'日常积分榜'}};
+  const cfg=configs[STORE.currentTab]||configs.total;let source=cycle()[STORE.currentTab]||[];
+  if(STORE.currentTab==='point'&&STORE.pointCardFilter==='ordinary')source=source.map(row=>({...row,points:Number(row.ordinaryPoints||0)}));
+  if(STORE.currentTab==='point'&&STORE.pointCardFilter==='gold')source=source.map(row=>({...row,points:Number(row.goldPoints||0)}));
+  document.getElementById('stageBoardTitle').textContent=cfg.title;
+  const sorted=source.map(row=>({...row,score:Number(row[cfg.field]||0)})).sort((a,b)=>b.score-a.score);
+  if(!sorted.length){wrap.innerHTML='<div style="align-self:center;color:var(--text-muted);font-size:13px;">当前榜单暂无数据</div>';return}
+
+  /* ── 按分数分组，处理并列 ── */
+  const groups=[];for(const row of sorted){const last=groups[groups.length-1];if(last&&last.score===row.score)last.members.push(row);else groups.push({score:row.score,members:[row]})}
+  const top3Groups=groups.slice(0,3);
+
+  /* ── 计算展示排名（并列时跳号）── */
+  let rankCursor=1;
+  const ranked=top3Groups.map(g=>{const r=rankCursor;rankCursor+=g.members.length;return{...g,rank:r}});
+
+  /* ── 布局：左=第2名组，中=第1名组，右=第3名组（不足3组时居中排列）── */
+  let ordered=[],rankCls=[],icons=[];
+  if(ranked.length===1){ordered=[ranked[0]];rankCls=['podium-1'];icons=['🥇']}
+  else if(ranked.length===2){ordered=[ranked[1],ranked[0]];rankCls=['podium-2','podium-1'];icons=['🥈','🥇']}
+  else{ordered=[ranked[1],ranked[0],ranked[2]];rankCls=['podium-2','podium-1','podium-3'];icons=['🥈','🥇','🥉']}
+
+  wrap.innerHTML=ordered.map((group,i)=>{const multiple=group.members.length>1,rankLabel=multiple?`TOP ${group.rank} ×${group.members.length}`:`TOP ${group.rank}`;const avatarsHTML=group.members.map(m=>{const p=person(m.pid);return`<span class="podium-avatar" data-avatar-pid="${m.pid}">${avatarMarkup(p,m)}</span>`}).join('');const namesHTML=multiple?`<div class="podium-name-row" style="cursor:pointer;font-size:11px;color:var(--text-muted)">${group.members.length}人并列 · 点击查看详情</div>`:group.members.map(m=>{const p=person(m.pid);return`<div class="podium-name-row" data-pid="${m.pid}"><span class="podium-name-text">${p.name} · ${p.level}</span><span class="podium-store-text">${p.store}</span></div>`}).join('');return`<div class="podium-item ${rankCls[i]}" style="animation-delay:${i*.12}s" data-group-score="${group.score}" data-group-pids="${group.members.map(m=>m.pid).join('|')}"><div class="podium-crown" aria-hidden="true">👑</div><div class="podium-avatar-cluster${multiple?' multiple':''}">${avatarsHTML}</div><div class="podium-rank-icon">${icons[i]}</div><div class="podium-rank-label">${multiple?`×${group.members.length}人并列`:''}</div><div class="podium-names-list">${namesHTML}</div><div class="podium-score-badge" data-target="${group.score}" data-unit="${cfg.unit}">0</div><div class="podium-glow-bar"></div></div>`}).join('');
+
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{wrap.querySelectorAll('.podium-item').forEach(el=>el.classList.add('animate-in'))})});
+  wrap.querySelectorAll('.podium-score-badge').forEach((el,i)=>{const target=parseFloat(el.dataset.target);setTimeout(()=>animateCount(el,target,'',700+i*100,2),350+i*120)});
+  /* 点击人名行打开明细（多人并列行不拦事件，交给卡片处理） */
+  wrap.querySelectorAll('.podium-name-row').forEach(row=>{row.onclick=(e)=>{const pid=row.dataset.pid;if(!pid)return;e.stopPropagation();openDetail(pid)}});
+  /* 点击奖台卡片查看该名次全部并列人员 */
+  wrap.querySelectorAll('.podium-item').forEach(card=>{card.onclick=()=>openGroupDetail(card.dataset.groupPids.split('|'),Number(card.dataset.groupScore))});
+}
+
+const TAB_DEFS=[{id:'total',label:'优秀员工PK总榜',badge:''},{id:'profit',label:'利润增长榜',badge:'月更'},{id:'newsku',label:'月度上新完成榜',badge:''},{id:'success',label:'推新成功榜',badge:''},{id:'point',label:'日常积分榜',badge:''}];
+function renderTabNav(){const nav=document.getElementById('tabNav');nav.innerHTML=TAB_DEFS.map(t=>`<div class="tab-item${t.id===STORE.currentTab?' active':''}" data-tab="${t.id}">${t.label}${t.badge?`<span class="tab-badge">${t.badge}</span>`:''}</div>`).join('');nav.querySelectorAll('.tab-item').forEach(el=>{el.onclick=()=>switchTab(el.dataset.tab)})}
+function switchTab(tabId){STORE.currentTab=tabId;document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab===tabId));renderPodium();renderTab(tabId)}
+function renderAllTabs(){const panels=document.getElementById('tabPanels');panels.innerHTML=TAB_DEFS.map(t=>`<div class="tab-panel${t.id===STORE.currentTab?' active':''}" id="panel-${t.id}"></div>`).join('');renderTab(STORE.currentTab)}
+
+function renderTab(tabId){
+  const panel=document.getElementById('panel-'+tabId);if(!panel)return;
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-'+tabId));
+  let data=[];switch(tabId){case'total':data=cycle().total;break;case'profit':data=cycle().profit;break;case'newsku':data=cycle().newsku;break;case'success':data=cycle().success;break;case'point':data=cycle().point;break}
+  /* 所有含排名的榜单：先按默认规则固化名次，再应用排序/搜索，确保名次不随排序变化 */
+  if(tabId==='total'){
+    const official=[...data].sort((a,b)=>Number.isFinite(a.rank)&&Number.isFinite(b.rank)?a.rank-b.rank:b.score-a.score);
+    data=official.map((row,i)=>({...row,_officialRank:Number.isFinite(row.rank)?row.rank:i+1,_isBottom:!row.newSkuOk}));
+    const sort=STORE.sortState[tabId];
+    if(sort)data=sortData(data,sort.field,sort.dir);
+    data=filterBySearch(data,STORE.searchQuery)
+  }else if(tabId==='profit'){
+    const official=[...data].sort((a,b)=>b.mom-a.mom);
+    data=official.map((row,i)=>({...row,_officialRank:i+1,_isBottom:i>=official.length-2}));
+    const sort=STORE.sortState[tabId]||DEFAULT_SORT[tabId];
+    if(sort)data=sortData(data,sort.field,sort.dir);
+    data=filterBySearch(data,STORE.searchQuery)
+  }else if(tabId==='success'){
+    const official=[...data].sort((a,b)=>b.score-a.score);
+    data=official.map((row,i)=>({...row,_officialRank:i+1}));
+    const sort=STORE.sortState[tabId]||DEFAULT_SORT[tabId];
+    if(sort)data=sortData(data,sort.field,sort.dir);
+    data=filterBySearch(data,STORE.searchQuery)
+  }else if(tabId==='point'){
+    if(STORE.pointCardFilter==='ordinary')data=data.map(row=>({...row,points:Number(row.ordinaryPoints||0)}));
+    if(STORE.pointCardFilter==='gold')data=data.map(row=>({...row,points:Number(row.goldPoints||0)}));
+    const official=[...data].sort((a,b)=>b.points-a.points);
+    data=official.map((row,i)=>({...row,_officialRank:i+1}));
+    const sort=STORE.sortState[tabId]||DEFAULT_SORT[tabId];
+    if(sort)data=sortData(data,sort.field,sort.dir);
+    data=filterBySearch(data,STORE.searchQuery)
+  }else{
+    /* newsku 无排名列，保持原有逻辑 */
+    const sort=STORE.sortState[tabId]||DEFAULT_SORT[tabId];
+    if(sort)data=sortData(data,sort.field,sort.dir);
+    data=filterBySearch(data,STORE.searchQuery)
+  }
+  const pg=paginate(data,tabId);panel.innerHTML=buildTable(tabId,pg);
+  panel.querySelectorAll('thead th[data-sort]').forEach(th=>{if(th.dataset.sort)th.onclick=()=>toggleSort(tabId,th.dataset.sort);else th.style.cursor='default'});
+  panel.querySelector('[data-export]')?.addEventListener('click',()=>exportCsv(tabId));
+  panel.querySelector('[data-point-card-filter]')?.addEventListener('change',e=>{STORE.pointCardFilter=e.target.value;STORE.pageState.point=1;renderPodium();renderTab('point')});
+  panel.querySelector('[data-page-size]')?.addEventListener('change',e=>{STORE.pageSize=Number(e.target.value);STORE.pageState[STORE.currentTab]=1;renderTab(STORE.currentTab)});
+  panel.querySelectorAll('.pagination button[data-page]').forEach(btn=>{btn.onclick=()=>{STORE.pageState[tabId]=parseInt(btn.dataset.page);renderTab(tabId)}});
+  panel.querySelectorAll('tbody tr[data-pid]').forEach(row=>{row.onclick=()=>openDetail(row.dataset.pid)});
+  panel.querySelectorAll(`tr[data-pid="${CURRENT_USER}"]`).forEach(r=>r.classList.add('row-self'))
+}
+
+function buildTable(tabId,pg){
+  const{slice,page,total,totalPages,start}=pg,showPager=totalPages>1;
+  let html='<div class="table-card">';
+  html+=`<div class="table-toolbar"><span class="info">共 <strong>${total}</strong> 条记录</span><span style="display:flex;align-items:center;gap:8px"><select data-page-size style="height:28px;border:1px solid var(--border-medium);border-radius:7px;background:#fff;padding:0 6px;font-size:12px">${[10,20,50,0].map(n=>`<option value="${n}" ${STORE.pageSize===n?'selected':''}>${n===0?'全部':`每页 ${n} 条`}</option>`).join('')}</select>${tabId==='point'?`<select data-point-card-filter style="height:28px;border:1px solid var(--border-medium);border-radius:7px;background:#fff;padding:0 8px"><option value="all" ${STORE.pointCardFilter==='all'?'selected':''}>全部积分卡</option><option value="ordinary" ${STORE.pointCardFilter==='ordinary'?'selected':''}>普通卡</option><option value="gold" ${STORE.pointCardFilter==='gold'?'selected':''}>黄金卡</option></select>`:''}<button class="btn-export" type="button" data-export>⇩ 导出 CSV</button></span></div><div style="overflow-x:auto;"><table class="tab-${tabId}-table">${buildColgroup(tabId)}<thead><tr>`;
+  getTableHeaders(tabId).forEach(h=>{const dir=getSortDir(tabId,h.sort),icon=dir==='asc'?' ▲':(dir==='desc'?' ▼':''),cls=dir?' sorted':'';html+=`<th class="${cls}" data-sort="${h.sort||''}">${h.label}<span class="sort-icon">${icon}</span></th>`});
+  html+='</tr></thead><tbody>';
+  if(slice.length===0)html+=`<tr><td colspan="${getTableHeaders(tabId).length}" style="padding:40px;color:var(--text-muted);">暂无匹配数据</td></tr>`;
+  else slice.forEach((row,i)=>{html+=buildRow(tabId,row,row._officialRank||start+i+1,total)});
+  html+='</tbody></table></div>';
+  if(showPager){html+='<div class="pagination">';html+=`<button data-page="${page-1}" ${page<=1?'disabled':''}>‹ 上一页</button>`;for(let p=1;p<=totalPages;p++)html+=`<button data-page="${p}" class="${p===page?'active':''}">${p}</button>`;html+=`<button data-page="${page+1}" ${page>=totalPages?'disabled':''}>下一页 ›</button><span class="page-info">${page}/${totalPages} 页</span></div>`}
+  return html+='</div>'
+}
+function buildColgroup(tabId){const widths={total:[8,25,10,20,18,11,8],profit:[9,29,14,24,24],newsku:[24,12,13,13,14,24],success:[12,38,25,25],point:[12,38,25,25]}[tabId]||[];return`<colgroup>${widths.map(w=>`<col style="width:${w}%">`).join('')}</colgroup>`}
+function getTableHeaders(tabId){switch(tabId){case'total':return[{label:'排名',sort:''},{label:'店铺+负责人',sort:'pid'},{label:'职级',sort:''},{label:'上新目标状态',sort:'newSkuOk'},{label:'环比利润增长',sort:'profitGrowth'},{label:'达标新品数',sort:'newProducts'},{label:'总分',sort:'score'}];case'profit':return[{label:'排名',sort:''},{label:'店铺负责人',sort:'pid'},{label:'职级',sort:''},{label:'环比利润增长额',sort:'mom'},{label:'同比毛利',sort:'yoy'}];case'newsku':return[{label:'姓名',sort:'pid'},{label:'职级',sort:''},{label:'5月上新',sort:'may'},{label:'6月上新',sort:'june'},{label:'双月合计',sort:'total'},{label:'缺口说明',sort:''}];case'success':return[{label:'排名',sort:''},{label:'姓名',sort:'pid'},{label:'达标新品数',sort:'qualified'},{label:'推新得分',sort:'score'}];case'point':return[{label:'排名',sort:''},{label:'姓名',sort:'pid'},{label:'当月累计积分',sort:'points'},{label:'较昨日变动',sort:'change'}];default:return[]}}
+function buildRow(tabId,row,rank,total){const p=person(row.pid),isBottom=Boolean(row._isBottom),cls=isBottom?'row-bottom':'';let rankCell='';if(rank<=3)rankCell=`<td class="cell-rank top${rank}">${getRankDisplay(rank)} ${rank}</td>`;else rankCell=`<td class="cell-rank${isBottom?' down':''}">${rank}</td>`;switch(tabId){case'total':return`<tr class="${cls}" data-pid="${row.pid}">${rankCell}<td>${tablePerson(row.pid,true)}</td><td>${p.level}</td><td class="cell-status"><span class="${row.newSkuOk?'badge-ok':'badge-fail'}">${row.newSkuOk?'✅ 双月全部达标':'❌ 未达标'}</span></td><td class="${row.profitGrowth>=0?'up':'down'}">${fmtUSD(row.profitGrowth)} ${row.profitGrowth>=0?'↑':'↓'}</td><td>${row.newProducts}款</td><td class="cell-score">${Number(row.score).toFixed(2)}</td></tr>`;case'profit':return`<tr class="${cls}" data-pid="${row.pid}">${rankCell}<td>${tablePerson(row.pid,true)}</td><td>${p.level}</td><td class="${row.mom>=0?'up':'down'}">${fmtUSD(row.mom)} ${row.mom>=0?'↑':'↓'}</td><td class="${row.yoy>=0?'up':'down'}">${fmtUSD(row.yoy)} ${row.yoy>=0?'↑':'↓'}</td></tr>`;case'newsku':return`<tr data-pid="${row.pid}"><td>${tablePerson(row.pid)}</td><td>${p.level}</td><td>${row.may}</td><td>${row.june}</td><td><strong>${row.total}</strong></td><td style="font-size:11px;color:var(--text-muted);">${row.gap}</td></tr>`;case'success':return`<tr data-pid="${row.pid}">${rankCell}<td>${tablePerson(row.pid)}</td><td>${row.qualified}</td><td class="cell-score">${row.score}</td></tr>`;case'point':return`<tr data-pid="${row.pid}">${rankCell}<td>${tablePerson(row.pid)}</td><td class="cell-score">${row.points}</td><td class="${row.change>=0?'up':'down'}">${fmtChange(row.change)}</td></tr>`;default:return''}}
+
+function animateCount(el,target,suffix,duration,decimals=0){const start=0,startTime=performance.now();function tick(now){const elapsed=now-startTime,progress=Math.min(elapsed/duration,1),val=start+(target-start)*(1-Math.pow(1-progress,3));el.textContent=val.toFixed(decimals)+suffix;if(progress<1)requestAnimationFrame(tick)}requestAnimationFrame(tick)}
+function csvCell(value){const text=String(value??'');return/[",\r\n]/.test(text)?`"${text.replace(/"/g,'""')}"`:text}
+function exportCsv(tabId){
+  const labels={total:'优秀员工PK总榜',profit:'利润增长榜',newsku:'月度上新完成榜',success:'推新成功榜',point:'日常积分榜'};
+  let headers=[],rows=[];
+  if(tabId==='total'){
+    headers=['排名','店铺','负责人','职级','上新目标状态','环比利润增长','达标新品数','总分'];
+    rows=[...cycle().total].sort((a,b)=>b.score-a.score).map((row,i)=>{const p=person(row.pid);return[i+1,p.store,p.name,p.level,row.newSkuOk?'双月全部达标':'未达标',fmtUSD(row.profitGrowth),row.newProducts,Number(row.score).toFixed(2)]})
+  }else if(tabId==='profit'){
+    headers=['排名','店铺','负责人','职级','环比毛利','同比毛利'];
+    rows=[...cycle().profit].sort((a,b)=>b.mom-a.mom).map((row,i)=>{const p=person(row.pid);return[i+1,p.store,p.name,p.level,fmtUSD(row.mom),fmtUSD(row.yoy)]})
+  }else if(tabId==='newsku'){
+    headers=['姓名','职级','5月上新','6月上新','双月合计','缺口说明'];
+    rows=cycle().newsku.map(row=>{const p=person(row.pid);return[p.name,p.level,row.may,row.june,row.total,row.gap]})
+  }else if(tabId==='success'){
+    headers=['排名','姓名','达标新品数','推新得分'];
+    rows=[...cycle().success].sort((a,b)=>b.score-a.score).map((row,i)=>{const p=person(row.pid);return[i+1,p.name,row.qualified,row.score]})
+  }else{
+    headers=['排名','姓名','当月累计积分','较昨日变动'];
+    rows=[...cycle().point].sort((a,b)=>b.points-a.points).map((row,i)=>{const p=person(row.pid);return[i+1,p.name,row.points,fmtChange(row.change)]})
+  }
+  const csv='\ufeff'+[headers,...rows].map(row=>row.map(csvCell).join(',')).join('\r\n');
+  const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`${labels[tabId]}_${STORE.currentCycle}.csv`;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),0)
+}
+function highlightRankChanges(){cycle().total.forEach((row,i)=>{if(row.prevRank&&(i+1)<row.prevRank){const tr=document.querySelector(`#panel-total tr[data-pid="${row.pid}"]`);if(tr){tr.classList.add('row-new');setTimeout(()=>tr.classList.remove('row-new'),1600)}}})}
+
+let modalBackAction=null;function showModal(title,backAction){const mask=document.getElementById('detailMask'),back=document.getElementById('modalBack');document.getElementById('modalTitle').textContent=title;mask.classList.add('show');if(backAction){modalBackAction=backAction;back.style.display=''}else{modalBackAction=null;back.style.display='none'}}
+async function openDetail(pid,backAction){const p=person(pid),rows=cycle()[STORE.currentTab]||[],row=rows.find(x=>x.pid===pid)||{};showModal(`${p.name} — ${STORE.currentTab==='point'?'积分明细':'周期明细'}`,backAction);const box=document.getElementById('modalContent');if(STORE.currentTab==='point'){box.innerHTML='<p style="color:var(--text-muted)">正在加载积分明细…</p>';try{const data=await fetch(`/api/leaderboard/points/${encodeURIComponent(pid)}/details`).then(r=>r.json());box.innerHTML=data.items.length?`<div style="max-height:420px;overflow:auto">${data.items.map(x=>`<div class="detail-card" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between"><strong>${x.date||'未填写日期'} · ${x.cardType||'积分卡'}</strong><strong style="color:var(--green)">+${x.quantity}</strong></div><div style="margin-top:5px;color:var(--text-secondary)">${x.reason||'未填写事由'}</div><div style="margin-top:4px;font-size:11px;color:var(--text-muted)">发放人：${x.issuer||'-'}　归属：${x.period||'-'}　兑换：${x.exchangeStatus||'未填写'}</div></div>`).join('')}</div>`:'<p style="color:var(--text-muted)">暂无积分明细</p>'}catch(e){box.innerHTML='<p style="color:var(--danger)">积分明细加载失败</p>'}return}const cards=[{label:'店铺',value:p.store},{label:'职级',value:p.level}];if(STORE.currentTab==='total'||STORE.currentTab==='profit'){cards.push({label:'环比利润增长',value:fmtUSD(row.mom||0)},{label:'达标新品数',value:`${row.newProducts||0} 款`},{label:'上新状态',value:row.newSkuOk?'✅ 已达标':'❌ 未达标'});if(STORE.currentTab==='total')cards.push({label:'优秀员工PK总分',value:(row.score||0).toFixed(2)})}if(STORE.currentTab==='newsku'){cards.push({label:'5月上新',value:`${row.may||0} 款`},{label:'6月上新',value:`${row.june||0} 款`},{label:'双月合计',value:`${row.total||0} 款`},{label:'缺口说明',value:row.gap||'-'})}if(STORE.currentTab==='success'){cards.push({label:'达标新品数',value:`${row.qualified||0} 款`},{label:'推新得分',value:`${row.score||0} 分`})}if(STORE.currentTab==='point'){cards.push({label:'普通卡积分',value:row.ordinaryPoints||0},{label:'黄金卡积分',value:row.goldPoints||0},{label:'累计积分',value:row.points||0})}box.innerHTML=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">${cards.map(c=>`<div class="detail-card"><div class="label">${c.label}</div><div class="value">${c.value}</div></div>`).join('')}</div>`}
+function openGroupDetail(pids,score){const cfg={total:['总分','score'],profit:['利润增长额','mom'],newsku:['双月上新','total'],success:['推新得分','score'],point:['积分','points']}[STORE.currentTab]||['数值','score'],rows=cycle()[STORE.currentTab]||[],backAction=()=>openGroupDetail(pids,score);showModal(`并列名次详情 · ${cfg[0]} ${Number(score).toFixed(2)}`);document.getElementById('modalContent').innerHTML=pids.map(pid=>{const p=person(pid),row=rows.find(x=>x.pid===pid)||{};return`<div class="detail-card" data-group-detail="${pid}" style="margin-bottom:9px;cursor:pointer"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><div>${tablePerson(pid,true)}</div><strong class="cell-score">${Number(row[cfg[1]]||0).toFixed(2)}</strong></div><div style="margin:5px 0 0 38px;font-size:11px;color:var(--text-muted)">职级：${p.level}　点击查看个人明细</div></div>`}).join('');document.querySelectorAll('[data-group-detail]').forEach(el=>el.onclick=()=>openDetail(el.dataset.groupDetail,backAction))}
+function closeModal(){document.getElementById('detailMask').classList.remove('show');modalBackAction=null}
+
+async function refreshData(){const btn=document.getElementById('btnRefresh');btn.textContent='⏳ 刷新中...';btn.disabled=true;const loaded=await loadBackendData();if(loaded){const sel=document.getElementById('cycleSelect');sel.innerHTML=Object.entries(STORE.cycles).map(([key,c])=>`<option value="${key}" selected>${c.label}</option>`).join('');document.getElementById('searchBox').value='';document.getElementById('statusText').textContent=`✅ 后端数据更新于：${cycle().updated} | 当前周期：${STORE.currentCycle} | API 已连接`}renderAll();btn.textContent='🔄 刷新数据';btn.disabled=false}
+function switchCycle(cycleKey){STORE.currentCycle=cycleKey;STORE.sortState={};STORE.pageState={};STORE.searchQuery='';document.getElementById('searchBox').value='';document.getElementById('statusText').textContent=`✅ 数据更新于：${cycle().updated} | 当前PK周期：${cycleKey}双月榜单`;document.getElementById('stageCycle').textContent=cycleKey.replace('2026','')+' · 双月赛';renderAll()}
+let searchDebounce=null;function onSearch(query){STORE.searchQuery=query;STORE.pageState[STORE.currentTab]=1;clearTimeout(searchDebounce);searchDebounce=setTimeout(()=>renderTab(STORE.currentTab),200)}
+function renderAll(){renderPodium();renderTabNav();renderAllTabs()}
+document.addEventListener('click',e=>{const img=e.target.closest?.('.podium-avatar img, .table-avatar img');if(img?.src){e.stopPropagation();e.stopImmediatePropagation();e.preventDefault();document.getElementById('avatarLarge').src=img.src;document.getElementById('avatarMask').classList.add('show')}},true);
+async function init(){const apiLoaded=await loadBackendData();const sel=document.getElementById('cycleSelect');sel.innerHTML=Object.entries(STORE.cycles).map(([key,c])=>`<option value="${key}" ${key===STORE.currentCycle?'selected':''}>${c.label}</option>`).join('');sel.onchange=()=>switchCycle(sel.value);document.getElementById('searchBox').oninput=function(){onSearch(this.value)};document.getElementById('btnRefresh').onclick=refreshData;document.getElementById('findSelf').onclick=()=>{STORE.currentTab='total';STORE.searchQuery='';document.getElementById('searchBox').value='';STORE.sortState['total']=null;STORE.pageState['total']=1;document.querySelectorAll('.tab-item').forEach(t=>t.classList.toggle('active',t.dataset.tab==='total'));renderTab('total');setTimeout(()=>{const tr=document.querySelector(`#panel-total tr[data-pid="${CURRENT_USER}"]`);if(tr){tr.classList.add('row-self');tr.scrollIntoView({behavior:'smooth',block:'center'})}},150)};document.getElementById('openAdmin').onclick=()=>{window.location.href='/admin'};document.getElementById('closeModal').onclick=closeModal;document.getElementById('modalBack').onclick=()=>{if(modalBackAction)modalBackAction()};document.getElementById('detailMask').onclick=(e)=>{if(e.target===document.getElementById('detailMask'))closeModal()};if(apiLoaded)document.getElementById('statusText').textContent=`✅ 后端数据更新于：${cycle().updated} | 当前周期：${STORE.currentCycle} | API 已连接`;renderAll();setTimeout(highlightRankChanges,500)}
+document.addEventListener('DOMContentLoaded',init)
+</script>
+</body>
+</html>
