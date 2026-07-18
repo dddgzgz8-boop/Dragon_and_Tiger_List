@@ -5,3 +5,4 @@ uploads/avatars/
 coverage/
 
 cloudflared.exe
+config.yml
