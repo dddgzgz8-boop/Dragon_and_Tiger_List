@@ -20,7 +20,7 @@ export function pointsPeriodForCycle(cycle){
 
 export async function fetchCumulativePoints({period=''}={}){
   if(!process.env.FEISHU_APP_ID||!process.env.FEISHU_APP_SECRET)throw badRequest('未配置飞书应用凭证')
-  const accessToken=await token(),directoryToken=await avatarToken(),all=await records(accessToken),department=process.env.FEISHU_POINTS_DEPARTMENT||'运营二部',totals=new Map(),details=new Map(),identities=new Map()
+  const accessToken=await token(),directoryToken=await token(),all=await records(accessToken),department=process.env.FEISHU_POINTS_DEPARTMENT||'运营二部',totals=new Map(),details=new Map(),identities=new Map()
   let sourceCount=0
   for(const record of all){
     const f=record.fields||{}
