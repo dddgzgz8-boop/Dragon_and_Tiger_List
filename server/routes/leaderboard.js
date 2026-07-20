@@ -3,7 +3,7 @@ import multer from 'multer'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import { config } from '../config.js'
-import { requireAuth, requireManager } from '../middleware/auth.js'
+import { optionalAuth, requireAuth, requireManager } from '../middleware/auth.js'
 import { deleteImport, getCycle, listCycles, listImports, setTotalLock, updatePerson, writeCycle, writePointsSync } from '../repos/localLeaderboardRepo.js'
 import { autoDetectBoard, mergeLeaderboardCycles, parseLeaderboardWorkbook } from '../modules/leaderboard/workbookParser.js'
 import { asyncHandler, badRequest } from '../lib/errors.js'
@@ -23,7 +23,15 @@ function safeFilename(originalname) {
 
 /* 本地验证阶段：排行榜只读接口公开；导入和头像写操作仍需 JWT。迁入中台后由外层统一鉴权。 */
 router.get('/cycles', asyncHandler(async (_req, res) => res.json({ ok: true, items: await listCycles() })))
-router.get('/', asyncHandler(async (req, res) => res.json({ ok: true, cycle: await getCycle(req.query.cycle) })))
+/* 按部门过滤榜单（积分榜不受部门限制，始终返回全员） */
+function filterCycleByDept(cycle, department) {
+  if (!department || department === '运营部门') return cycle
+  const deptPids = new Set(Object.entries(cycle.people || {}).filter(([,p]) => p.department === department).map(([pid]) => pid))
+  if (!deptPids.size) return cycle
+  const filterBoard = (board) => (board || []).filter(row => deptPids.has(row.pid))
+  return { ...cycle, total: filterBoard(cycle.total), profit: filterBoard(cycle.profit), newsku: filterBoard(cycle.newsku), success: filterBoard(cycle.success) }
+}
+router.get('/', optionalAuth, asyncHandler(async (req, res) => res.json({ ok: true, cycle: filterCycleByDept(await getCycle(req.query.cycle), req.actor?.department), department: req.actor?.department || '全部部门' })))
 router.get('/imports', requireAuth, requireManager, asyncHandler(async (_req, res) => res.json({ ok: true, items: await listImports() })))
 router.delete('/imports/:id', requireAuth, requireManager, asyncHandler(async (req, res) => { await deleteImport(req.params.id);res.json({ ok: true }) }))
 router.patch('/people/:pid', requireAuth, requireManager, asyncHandler(async (req,res)=>res.json({ok:true,person:await updatePerson(req.params.pid,req.body||{})})))

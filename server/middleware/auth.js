@@ -3,9 +3,11 @@ import { config } from '../config.js'
 import { forbidden } from '../lib/errors.js'
 
 const LOCAL_USERS = {
-  admin: { user_id: 'local-admin', username: 'admin', role: 'super_admin', department: '运营部门' },
-  manager: { user_id: 'local-manager', username: 'manager', role: 'supervisor', department: '运营部门' },
-  employee: { user_id: 'local-employee', username: 'employee', role: 'employee', department: '运营部门' },
+  admin:    { user_id: 'local-admin',    username: 'admin',    role: 'super_admin', department: '运营部门' },
+  manager:  { user_id: 'local-manager',  username: 'manager',  role: 'supervisor',  department: '运营部门' },
+  dept1:    { user_id: 'local-dept1',    username: 'dept1',    role: 'employee',    department: '运营一部' },
+  dept2:    { user_id: 'local-dept2',    username: 'dept2',    role: 'employee',    department: '运营二部' },
+  employee: { user_id: 'local-employee', username: 'employee', role: 'employee',    department: '运营部门' },
 }
 
 export function localLogin(username, password) {
@@ -20,6 +22,15 @@ export function requireAuth(req, res, next) {
   if (!token) return res.status(401).json({ ok: false, error: '请先登录' })
   try { req.actor = jwt.verify(token, config.jwtSecret); next() }
   catch { res.status(401).json({ ok: false, error: '登录已失效，请重新登录' }) }
+}
+
+/* 可选认证：有 token 就解析，没有也继续（用于部门权限隔离） */
+export function optionalAuth(req, _res, next) {
+  const token = req.headers.authorization?.replace(/^Bearer\s+/i, '')
+  if (token) {
+    try { req.actor = jwt.verify(token, config.jwtSecret) } catch { /* token 无效也放行 */ }
+  }
+  next()
 }
 
 export function requireManager(req, _res, next) {
